@@ -1,0 +1,73 @@
+name: Build
+
+# The tag job attaches packages to the GitHub release, which needs
+# write access to repository contents (releases included).
+permissions:
+  contents: write
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+
+jobs:
+  test-and-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Unit tests
+        run: bun run test
+      - name: Typecheck
+        run: bun run typecheck
+      - name: Build the app
+        run: bun run build
+      - name: Build Linux packages
+        run: bun x electron-builder --linux AppImage tar.gz --publish never
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: parnassus-linux
+          path: |
+            dist/*.AppImage
+            dist/*.tar.gz
+      - name: Attach packages to the release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/*.AppImage
+            dist/*.tar.gz
+
+  # Optional: builds the Flatpak from the tar.gz package on release tags.
+  # The manifest expects the tarball next to it as parnassus.tar.gz.
+  flatpak:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: test-and-package
+    runs-on: ubuntu-latest
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:gnome-47
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download the Linux packages
+        uses: actions/download-artifact@v4
+        with:
+          name: parnassus-linux
+          path: release
+      - name: Place the tarball next to the manifest
+        run: cp release/*.tar.gz flatpak/parnassus.tar.gz
+      - name: Build the Flatpak
+        uses: bilelmoussaoui/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: parnassus.flatpak
+          manifest-path: flatpak/io.github.dmytroportianka.Parnassus.yml
+          cache-key: flatpak-builder-${{ github.sha }}
+      - name: Upload the Flatpak bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: parnassus-flatpak
+          path: parnassus.flatpak
