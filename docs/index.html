@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Parnassus — a desktop client for Muse</title>
+<meta name="description" content="Parnassus is a desktop client for Muse. Your files stay in your folders, work happens on copies, and nothing is written back without your approval.">
+<style>
+  :root {
+    color-scheme: dark;
+    --bg: #0a0a0b;
+    --surface: #131314;
+    --border: #262628;
+    --text: #f2f2f2;
+    --muted: #a3a3ab;
+    --accent: #e8e8e8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.55;
+  }
+  main { max-width: 960px; margin: 0 auto; padding: 48px 24px 64px; }
+  header { margin-bottom: 32px; }
+  h1 { font-size: 40px; margin: 0 0 8px; letter-spacing: -0.02em; }
+  h2 { font-size: 22px; margin: 40px 0 12px; }
+  .tagline { color: var(--muted); font-size: 18px; margin: 0; max-width: 42em; }
+  .status {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin: 28px 0;
+  }
+  .status strong { display: block; margin-bottom: 4px; }
+  .status p { margin: 0; color: var(--muted); }
+  .downloads { display: flex; gap: 12px; flex-wrap: wrap; margin: 24px 0 8px; }
+  .downloads a {
+    display: inline-block;
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    color: var(--text);
+    text-decoration: none;
+    background: var(--surface);
+    font-weight: 600;
+  }
+  .downloads a.primary { background: var(--accent); color: #111; border-color: var(--accent); }
+  .downloads a:hover { text-decoration: underline; }
+  figure { margin: 28px 0; }
+  figure img {
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    display: block;
+  }
+  figcaption { color: var(--muted); font-size: 14px; margin-top: 8px; }
+  ul { padding-left: 20px; }
+  li { margin: 6px 0; }
+  .muted { color: var(--muted); }
+  code { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 0.92em; }
+  footer {
+    border-top: 1px solid var(--border);
+    margin-top: 48px;
+    padding-top: 20px;
+    color: var(--muted);
+    font-size: 14px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  footer a { color: var(--muted); }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Parnassus</h1>
+    <p class="tagline">A desktop client for Muse. Your files stay in your
+    folders, work happens on copies, and nothing is written back without
+    your approval.</p>
+    <div class="downloads">
+      <a class="primary" href="https://github.com/marshmallow-eater/Parnassus/releases/download/v0.1.0/Parnassus-0.1.0.AppImage">Download the AppImage (v0.1.0)</a>
+      <a href="https://github.com/marshmallow-eater/Parnassus/releases/download/v0.1.0/parnassus-0.1.0.tar.gz">Download the tar.gz</a>
+      <a href="https://github.com/marshmallow-eater/Parnassus/releases/tag/v0.1.0">Release notes</a>
+    </div>
+  </header>
+
+  <section class="status">
+    <strong>Status: v0.1.0, a public v1 of the inbound half</strong>
+    <p>Context flows in — project description, file summaries, then full
+    files on request through the file-request loop — and changes are
+    reviewed before anything is written back. The return path is still
+    simulated: Muse-side edits arrive as a marker line, not real agent
+    changes yet. Linux only, unsigned, no auto-update; a new release
+    here is the update channel.</p>
+  </section>
+
+  <figure>
+    <img src="screenshots/parnassus-main.png" alt="Parnassus main window: a project chat with the project list and per-file sync tree">
+    <figcaption>The main window: chat on the left, projects on the right,
+    with a file tree showing what is synced and what is not. Screenshot
+    from the browser preview with the seeded mock project; in the desktop
+    app the left pane embeds muse.ai itself.</figcaption>
+  </figure>
+
+  <h2>The three ideas</h2>
+  <ul>
+    <li><strong>Owns nothing.</strong> The app stores no document content
+    for itself. The staging area holds working copies you asked it to
+    make; your originals are yours.</li>
+    <li><strong>The Airlock.</strong> Files move in exactly two ways, both
+    explicit: copied in after you tick them in the scan, and written back
+    only from the review dialog, one approval for the whole trip.</li>
+    <li><strong>Workspaces are the boundary.</strong> Each project is its
+    own workspace and its own chat — isolated session, its own Muse
+    thread named after the project — so a message never lands in the
+    wrong project's reach.</li>
+  </ul>
+
+  <h2>How the chat gets your files</h2>
+  <ul>
+    <li>First, a description pack: the project's goal, soul, memory, the
+    folders its files live in, and a summary of each copied-in file.</li>
+    <li>When the agent needs a file in full, it asks with one marker
+    line, <code>PARNASSUS_FILE_REQUEST: &lt;path&gt;</code>, and that one
+    file is sent into the chat. It can ask again — retrieval is a loop,
+    not one huge prompt.</li>
+    <li>Goal, soul, decisions, and project memory live as plain markdown
+    in the project's own <code>.parnassus</code> folder, editable in any
+    text editor.</li>
+  </ul>
+
+  <figure>
+    <img src="screenshots/parnassus-sync-review.png" alt="The sync review: a Muse-side change with its diff and direction choice">
+    <figcaption>The sync review: every differing file with its diff, a
+    direction per file, and nothing moves until you approve.</figcaption>
+  </figure>
+
+  <footer>
+    <span>By Dmytro Portianka</span>
+    <a href="https://github.com/marshmallow-eater/Parnassus">Source on GitHub</a>
+    <a href="https://github.com/marshmallow-eater/Parnassus/blob/main/LICENSE">MIT License</a>
+    <a href="https://github.com/marshmallow-eater/Parnassus/releases">All releases</a>
+  </footer>
+</main>
+</body>
+</html>
