@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Parnassus
+Comment=Desktop client for Muse. Files move only through the Airlock: copied in on request, written back only after approval.
+Exec=parnassus
+Icon=io.github.dmytroportianka.Parnassus
+Terminal=false
+Type=Application
+Categories=Utility;
